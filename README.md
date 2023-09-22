@@ -10,8 +10,7 @@ Coming soon...
 |Name|Lightweight - Data Cloud Auth Provider|
 |Version|0.1.0-2|
 |Managed Installation URL| */packaging/installPackage.apexp?p0=04tP30000003w7VIAQ*
-|Unlocked Installation URL| */packaging/installPackage.apexp?p0=*
-|GIT URL|https://github.com/jfwberg/lightweight-data-cloud-auth-provider
+|Unlocked Installation URL| */packaging/installPackage.apexp?p0=04tP30000003wInIAI*
 
 ## Optional Dependencies
 This package has an extension that adds a basic (error) logging functionality and a user mapping utility that allows the Auth Provider to work in a user context using "Per User" instead of "Named Principal". 
