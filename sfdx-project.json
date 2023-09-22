@@ -1,0 +1,30 @@
+{
+  "packageDirectories": [
+    {
+      "path": "force-app/package",
+      "default": false,
+      "package": "Lightweight - Data Cloud Auth Provider",
+      "versionName": "Version 0.1",
+      "versionNumber": "0.1.0.NEXT",
+      "versionDescription": "A lightweight Auth Provider to connect to the Data Cloud APIs through a Named Credential."
+    },
+    {
+      "path": "force-app/package",
+      "default": true,
+      "package": "Lightweight - Data Cloud Auth Provider (Unlocked)",
+      "versionName": "Version 0.1",
+      "versionNumber": "0.1.0.NEXT",
+      "versionDescription": "A lightweight Auth Provider to connect to the Data Cloud APIs through a Named Credential."
+    }
+  ],
+  "name": "lightweight-data-cloud-auth-provider",
+  "namespace": "lwt",
+  "sfdcLoginUrl": "https://login.salesforce.com",
+  "sourceApiVersion": "58.0",
+  "packageAliases": {
+    "Lightweight - Data Cloud Auth Provider": "0HoP3000000003FKAQ",
+    "Lightweight - Data Cloud Auth Provider@0.1.0-1": "04tP30000003w7VIAQ",
+    "Lightweight - Data Cloud Auth Provider (Unlocked)": "0HoP3000000004rKAA",
+    "Lightweight - Data Cloud Auth Provider (Unlocked)@0.1.0-1": "04tP30000003wInIAI"
+  }
+}

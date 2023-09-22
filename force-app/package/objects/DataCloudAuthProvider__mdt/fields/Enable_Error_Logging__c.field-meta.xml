@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Enable_Error_Logging__c</fullName>
+    <defaultValue>false</defaultValue>
+    <externalId>false</externalId>
+    <fieldManageability>DeveloperControlled</fieldManageability>
+    <inlineHelpText>This option requires the &quot;Lightweight - Auth Provider Util v2&quot; (04t4K000002Jv1tQAC) package to be installed.</inlineHelpText>
+    <label>Enable Error Logging</label>
+    <type>Checkbox</type>
+</CustomField>
