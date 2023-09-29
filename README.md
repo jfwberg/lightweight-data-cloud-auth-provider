@@ -2,14 +2,15 @@
 A lightweight Auth Provider to connect to the Data Cloud APIs through a Named Credential
 
 ## Blog details
-Coming soon...
+For all setup details see the blog here:
+https://medium.com/@justusvandenberg/connect-to-the-native-salesforce-data-cloud-api-through-named-credentials-using-a-custom-auth-9b900d0fabcf
 
 ## Package info
 | Info | Value |
 |---|---|
 |Name|Lightweight - Data Cloud Auth Provider|
 |Version|0.1.0-2|
-|Managed Installation URL| */packaging/installPackage.apexp?p0=04tP30000003w7VIAQ*
+|Managed Installation URL|  */packaging/installPackage.apexp?p0=04tP30000003w7VIAQ*
 |Unlocked Installation URL| */packaging/installPackage.apexp?p0=04tP30000003wInIAI*
 
 ## Optional Dependencies
@@ -25,31 +26,8 @@ This package has an extension that adds a basic (error) logging functionality an
 - At the time of writing I work for Salesforce. The views / solutions presented here are strictly MY OWN and NOT per definition the views or solutions Salesforce as a company would recommend. Again; always consult with your certified implementation partner before implementing anything you've found on the internet.
 
 ## Important note on approach
-If you run Data Cloud on the same Org you want to call it from, there is no need to call the APIs directly. Use the [ConnectApi Apex Classes](https://developer.salesforce.com/docs/atlas.en-us.apexref.meta/apexref/apex_classes_connect_api.htm) to manage calls to data cloud whenever possible.
-You can use the CDP methods from this class to save on API calls, JSON parsing etc.
+This is an exploratory, "art of the possible" type approach. Common implementations use the [Salesforce Connect API](https://developer.salesforce.com/docs/atlas.en-us.chatterapi.meta/chatterapi/connect_resources_customer_360_audiences_resources.htm).
 
-## Org Info
-To make clear what is the difference between the Orgs that we are going to connect using the Salesforce API, I've outlined the difference.
+For connection from Apex to the same org use the [ConnectApi Apex Classes](https://developer.salesforce.com/docs/atlas.en-us.apexref.meta/apexref/apex_classes_connect_api.htm) to manage calls to data cloud whenever possible. You can use the CDP methods from this class to save on API calls, JSON parsing etc.
 
-### Hub Org
-- This Org is going to callout to the Data Cloud Org(s).
-- This Org contains the Auth Provider Package
-- This Org is where we will set up the named/external credentials
-- This Org contains the private key / certificate that is used for connecting to the Data Cloud (spoke) org(s)
-
-### Spoke Org / Data Cloud Org
-- This Org has Data Cloud provisioned on it
-- This Org is where we will set up a Connected App
-
-## Pre-requisites
-- The Hub Org My Domain URL
-- The Spoke Org My Domain URL
-- The Data Cloud Instance URL
-- A certificate with public and private key that is used for signing the JWT. This should be a CA signed certificate but you can use a self signed certificate for testing purposes. This should be saved in the Salesforce certificate store
-- Have the public certificate saved on your machine as a file, we need this later.
-- Optionally: install the Auth Provider Util on the Hub Org, for easy error hanlding and per user management
-
-## 00 :: Deployment and Preparation
-1. Deploy the *Apex Class* and the *Custom Metadata (including layouts)* from this SFDX Project to your Org (Or install the package as described in the package info)
-
-To be completed...
+More details to follow soon, for now please see the Medium Blog Post as mentioned at the top.
