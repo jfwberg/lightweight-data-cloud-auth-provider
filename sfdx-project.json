@@ -2,29 +2,52 @@
   "packageDirectories": [
     {
       "path": "force-app/package",
-      "default": false,
+      "default": true,
       "package": "Lightweight - Data Cloud Auth Provider",
-      "versionName": "Version 0.1",
-      "versionNumber": "0.1.0.NEXT",
-      "versionDescription": "A lightweight Auth Provider to connect to the Data Cloud APIs through a Named Credential."
+      "versionName": "v59.0 - 0.2",
+      "versionNumber": "0.2.0.NEXT",
+      "versionDescription": "A lightweight Auth Provider to connect to the Data Cloud APIs through a Named Credential.",
+      "ancestorId": "04tP30000003w7VIAQ",
+      "dependencies": [
+        {
+          "package": "Lightweight - Apex Unit Test Util v2@2.2.0-2"
+        },
+        {
+          "package": "Lightweight - REST Util@0.9.0-1"
+        }
+      ]
     },
     {
       "path": "force-app/package",
-      "default": true,
+      "default": false,
       "package": "Lightweight - Data Cloud Auth Provider (Unlocked)",
-      "versionName": "Version 0.1",
-      "versionNumber": "0.1.0.NEXT",
-      "versionDescription": "A lightweight Auth Provider to connect to the Data Cloud APIs through a Named Credential."
+      "versionName": "v59.0 - 0.2",
+      "versionNumber": "0.2.0.NEXT",
+      "versionDescription": "A lightweight Auth Provider to connect to the Data Cloud APIs through a Named Credential.",
+      "dependencies": [
+        {
+          "package": "Lightweight - Apex Unit Test Util v2 (Unlocked)@2.2.0-2"
+        },
+        {
+          "package": "Lightweight - REST Util (Unlocked)@0.9.0-1"
+        }
+      ]
     }
   ],
   "name": "lightweight-data-cloud-auth-provider",
   "namespace": "lwt",
   "sfdcLoginUrl": "https://login.salesforce.com",
-  "sourceApiVersion": "58.0",
+  "sourceApiVersion": "59.0",
   "packageAliases": {
+    "Lightweight - Apex Unit Test Util v2@2.2.0-2": "04tP30000007Ez7IAE",
+    "Lightweight - Apex Unit Test Util v2 (Unlocked)@2.2.0-2": "04tP30000007F3xIAE",
+    "Lightweight - REST Util@0.9.0-1": "04tP30000007FOvIAM",
+    "Lightweight - REST Util (Unlocked)@0.9.0-1": "04tP30000007FVNIA2",
     "Lightweight - Data Cloud Auth Provider": "0HoP3000000003FKAQ",
     "Lightweight - Data Cloud Auth Provider@0.1.0-1": "04tP30000003w7VIAQ",
+    "Lightweight - Data Cloud Auth Provider@0.2.0-1": "04tP30000007FvBIAU",
     "Lightweight - Data Cloud Auth Provider (Unlocked)": "0HoP3000000004rKAA",
-    "Lightweight - Data Cloud Auth Provider (Unlocked)@0.1.0-1": "04tP30000003wInIAI"
+    "Lightweight - Data Cloud Auth Provider (Unlocked)@0.1.0-1": "04tP30000003wInIAI",
+    "Lightweight - Data Cloud Auth Provider (Unlocked)@0.2.0-1": "04tP30000007GCvIAM"
   }
 }

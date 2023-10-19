@@ -1,6 +1,6 @@
 /**
  * @author         Justus van den Berg (jfwberg@gmail.com)
- * @date           April 2023
+ * @date           October 2023
  * @copyright      (c) 2023 Justus van den Berg
  * @license        MIT (See LICENSE file in the project root)
  * @description   A lightweight Auth Provider to connect to the Data Cloud APIs through a Named Credential
@@ -43,7 +43,7 @@ public with sharing class DataCloudAuthProvider extends Auth.AuthProviderPluginC
     @TestVisible private final static String ENABLE_LOGIN_LOGGING_FIELD_NAME = String.valueOf(DataCloudAuthProvider__mdt.Enable_Per_User_Login_Logging__c);
 
     // This will generate the GUID that is used to identify this specific transaction so it can be followed through the logs
-    @TestVisible private final static String GUID = generateGUID();
+    @TestVisible private final static String GUID = utl.Rst.guid();
 
     // Parameter names
     @TestVisible private final static String PARAM_NAME_STATE = 'state';
@@ -228,32 +228,7 @@ public with sharing class DataCloudAuthProvider extends Auth.AuthProviderPluginC
     }
 
 
-    /**
-     * @description Method to generate an HttpRequest object that can be used to retrieve a token
-     * @param       endpoint                  Endpoint that is postfixed to the base URL. Used to 
-     *                                        differentiate between a Salesforce Token and a Data Cloud token
-     * @param       authProviderConfiguration The configuration items for the custom authentication
-     *                                        provider that have been configured in the custom metadata
-     *                                        type.
-     * @param       body                      The request body content
-     * @return      HttpRequest to fetch the token
-     * @note        This method has been split for testability reasons: Not all data could be accessed
-     *              otherwise.
-     */
-    @TestVisible
-    private HttpRequest generateHttpRequest(String endpoint, Map<String,String> authProviderConfiguration, String body){
-        
-        // Create the request to the token endpoint
-        HttpRequest httpRequest = new HttpRequest(); 
-        httpRequest.setEndpoint(authProviderConfiguration.get(MY_DOMAIN_FIELD_NAME) + endpoint); 
-        httpRequest.setHeader('Content-Type','application/x-www-form-urlencoded'); 
-        httpRequest.setMethod('POST'); 
-        httpRequest.setBody(body);
-        
-        // Return the request ready for sending
-        return httpRequest;
-    }
-
+ 
 
     /**
      * @description Method that generates the JWT, JWS and HTTP Request to retrieve an access token
@@ -266,43 +241,20 @@ public with sharing class DataCloudAuthProvider extends Auth.AuthProviderPluginC
      */
     private TokenResponse retrieveSalesforceToken(Map<String,String> authProviderConfiguration){
         
-        // Generate the full body string as a URL query parameter
-        String body =  this.urlParameterQueryString(new Map<String,String>{
-            'grant_type' => 'urn:ietf:params:oauth:grant-type:jwt-bearer',
-            'assertion'  => this.generateJWS(authProviderConfiguration)
-        });
-
-        // Send thefetch the response
-        HttpResponse httpResponse = new Http().send(
-            this.generateHttpRequest(
-                '/services/oauth2/token',
-                authProviderConfiguration,
-                body
+        // Call SF token endpoint
+        return this.parseTokenResponse(new utl.Rst()
+            .setHandleSfResponse(true)
+            .setEndpoint(authProviderConfiguration.get(MY_DOMAIN_FIELD_NAME) + '/services/oauth2/token')
+            .setContentTypeHeaderToFormUrlEncoded(
+                new Map<String,String>{
+                    'grant_type' => 'urn:ietf:params:oauth:grant-type:jwt-bearer',
+                    'assertion'  => this.generateJWS(authProviderConfiguration)
+                }
             )
-        ); 
-
-        // Check the status is as expexted or throw an exception
-        if(httpResponse.getStatusCode() != 200){
-            // Throw an exception
-            throw new TokenException(String.format(
-                INVALID_TOKEN_RESPONSE_MSG,
-                new String[]{httpResponse.getBody()}
-            ));
-        }
-
-        // Check if the per user principal is enabled, if so update the log entry for that user mapping
-        if( Boolean.valueOf(authProviderConfiguration.get(ENABLE_PER_USER_MODE_FIELD_NAME)) &&
-            Boolean.valueOf(authProviderConfiguration.get(ENABLE_LOGIN_LOGGING_FIELD_NAME))){
-            
-            // Update the mapping record    
-            getAuthProviderUtil().call('updateMappingLoginDetails', new Map<String, Object> { 
-                'authProviderName' => authProviderConfiguration.get(AUTH_PROVIDER_NAME_FIELD_NAME)?.trim(),
-                'userId'           => UserInfo.getUserId()
-            });
-        }
-
-        // Parse the response into a token response
-        return this.parseTokenResponse(httpResponse.getBody());
+            .call()
+            .getResponse()
+            .getBody()
+        );
     }
 
 
@@ -317,35 +269,23 @@ public with sharing class DataCloudAuthProvider extends Auth.AuthProviderPluginC
      * @throws      TokenException            There is an error in parsing the token response
      */
     private TokenResponse retrieveDataCloudToken(Map<String,String> authProviderConfiguration, String sessionId){
-        
-        // Generate the full body string as a URL query parameter
-        String body = this.urlParameterQueryString(
-            new Map<String,String>{
-                'grant_type'        => 'urn:salesforce:grant-type:external:cdp',
-                'subject_token'     => sessionId,
-                'subject_token_type'=> 'urn:ietf:params:oauth:token-type:access_token'
-            }
-        );
-
-        // Send thefetch the response
-        HttpResponse httpResponse = new Http().send(
-            this.generateHttpRequest(
-                '/services/a360/token',
-                authProviderConfiguration,
-                body
+     
+        // Call SF token endpoint
+        String tokenResponseBody = new utl.Rst()
+            .setHandleSfResponse(true)
+            .setEndpoint(authProviderConfiguration.get(MY_DOMAIN_FIELD_NAME) + '/services/a360/token')
+            .setContentTypeHeaderToFormUrlEncoded(
+                new Map<String,String>{
+                    'grant_type'        => 'urn:salesforce:grant-type:external:cdp',
+                    'subject_token'     => sessionId,
+                    'subject_token_type'=> 'urn:ietf:params:oauth:token-type:access_token'
+                }
             )
-        ); 
-
-        // Check the status is as expexted or throw an exception
-        if(httpResponse.getStatusCode() != 200){
-            // Throw an exception
-            throw new TokenException(String.format(
-                INVALID_TOKEN_RESPONSE_MSG,
-                new String[]{httpResponse.getBody()}
-            ));
-        }
-
-        try{
+            .call()
+            .getResponse()
+            .getBody();
+        
+  
             // Check if the per user principal is enabled, if so update the log entry for that user mapping
             if( Boolean.valueOf(authProviderConfiguration.get(ENABLE_PER_USER_MODE_FIELD_NAME)) &&
                 Boolean.valueOf(authProviderConfiguration.get(ENABLE_LOGIN_LOGGING_FIELD_NAME))){
@@ -356,18 +296,9 @@ public with sharing class DataCloudAuthProvider extends Auth.AuthProviderPluginC
                     'userId'           => UserInfo.getUserId()
                 });
             }
-
-            // Parse the response into a token response
-            return this.parseTokenResponse(httpResponse.getBody());
-
-        }catch(System.JSONException e){
             
-            // Throw an exception
-            throw new TokenException(String.format(
-                INVALID_TOKEN_RESPONSE_MSG,
-                new String[]{(httpResponse.getBody().length() > 1000) ? httpResponse.getBody().substring(0,1000) : httpResponse.getBody() }
-            ));
-        }
+            // Parse the response into a token response
+            return this.parseTokenResponse(tokenResponseBody);
     }
 
 
@@ -401,13 +332,13 @@ public with sharing class DataCloudAuthProvider extends Auth.AuthProviderPluginC
         // Encode and combine the header and body for signing
         String b64UrlEncodedHeaderAndPayload = String.format('{0}.{1}',
             new String[]{
-                base64UrlEncode(Blob.valueOf(header )),
-                base64UrlEncode(Blob.valueOf(payload))
+                utl.Rst.base64UrlEncode(Blob.valueOf(header )),
+                utl.Rst.base64UrlEncode(Blob.valueOf(payload))
             }
         );
 
         // Generate the signature
-        String b64UrlEncodedSignature = (!Test.isRunningTest()) ? this.base64UrlEncode(
+        String b64UrlEncodedSignature = (!Test.isRunningTest()) ? utl.Rst.base64UrlEncode(
             Crypto.signWithCertificate(
                 'RSA-SHA256',
                 Blob.valueOf(b64UrlEncodedHeaderAndPayload),
@@ -439,71 +370,6 @@ public with sharing class DataCloudAuthProvider extends Auth.AuthProviderPluginC
                 'https://test.salesforce.com' :    
                 'https://login.salesforce.com'
         );
-    }
-
-
-    /**
-     * @description Method for encoding a Blob into a Base64 URL encoded String.
-     *              This is required for generating the JWS
-     * @param       input The input Blob to convert to a Base64Url Encoded String
-     * @return      Base64 Url Encoded String
-     */
-    private String base64UrlEncode(Blob input){
-        return EncodingUtil.base64Encode(input).replace('+', '-').replace('/', '_');
-    }
-
-    
-    /**
-     * @description Very basic GUID implementation that you should probably replace this with your own
-     *              implementation if you deem it necessary.
-     *              These GUIDs are used to populate the "jti" parameter in the JWT to prevent replay
-     *              attacks.
-     * @return      V4 UUID (GUID)
-     */
-    private static String generateGUID(){
-        String randomHexString = EncodingUtil.convertToHex(Crypto.generateAESKey(256));
-        return String.join(new String[]{
-            randomHexString.substring(0,8),
-            randomHexString.substring(8,12),
-            randomHexString.substring(12,16),
-            randomHexString.substring(16,20),
-            randomHexString.substring(20,32)
-        },'-');
-    }
-
-
-    /**
-     * @description Method to convert a key/value map into a URL encoded parameter query string that
-     *              can be used with url-encoded forms or get queries
-     * @param       parameterValueMap A key/value map that contains the parameter name and the
-     *                                parameter value
-     * @return      a url encoded parameter string formatted like "?key1=value1&key2=value2"
-     */
-    private String urlParameterQueryString(Map<String,String> parameterValueMap){
-        
-        // Return an emtpy string if the input is null
-        if(parameterValueMap == null || parameterValueMap.isEmpty()){
-            return '';
-        }
-
-        // Start the query string
-        String queryString ='';
-
-        // Parameter string format
-        final String parameterTemplate = '{0}{1}={2}';
-
-        // Add parameter if the parameter has a value
-        for(String parameter : parameterValueMap.keySet()){
-            if(String.isNotBlank(parameterValueMap.get(parameter))){
-                queryString += String.format(parameterTemplate, new String[]{
-                    ((String.isBlank(queryString)) ? '' : '&'),
-                    parameter,
-                    EncodingUtil.urlEncode(parameterValueMap.get(parameter), 'UTF-8')
-                });
-            }
-        }
-        // Return the query string
-        return queryString;
     }
 
 
@@ -589,16 +455,17 @@ public with sharing class DataCloudAuthProvider extends Auth.AuthProviderPluginC
      */
     @TestVisible
     private static Callable getAuthProviderUtil(){
-        
-        // Lazy loading
         if(authProviderUtil == null){
+            
+            // Allow for testing a callable method
+            if(Test.isRunningTest()){return (Callable) utl.Clbl.getInstance();}
             
             // Dymaically instatiate class 
             authProviderUtil = (Callable) Type.forName('lwt.AuthProviderUtil')?.newInstance();
             
             // Throw an error if the package is not installed
             // Add Test check here so the test does not fail in case the package is installed
-            if(authProviderUtil == null || Test.isRunningTest()){
+            if(authProviderUtil == null){
                 throw new GenericException(MISSING_UTIL_PACKAGE_MSG);
             }
         }
@@ -664,4 +531,6 @@ public with sharing class DataCloudAuthProvider extends Auth.AuthProviderPluginC
         public String instance_url;
         public String issued_token_type;
     }
+
+
 }

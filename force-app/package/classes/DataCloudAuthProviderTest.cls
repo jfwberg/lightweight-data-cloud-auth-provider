@@ -1,6 +1,6 @@
 /**
  * @author      Justus van den Berg (jfwberg@gmail.com)
- * @date        April 2023
+ * @date        October 2023
  * @copyright   (c) 2023 Justus van den Berg
  * @license     MIT (See LICENSE file in the project root)
  * @description Class for testing the DataCloudAuthProvider Methods
@@ -45,8 +45,24 @@ private with sharing class DataCloudAuthProviderTest {
     @IsTest
     static void testHandleCallback(){
         
-        // Set a mock resonse for the token
-        Test.setMock(HttpCalloutMock.class, new MockTokenResponse()); 
+        // Run once so it is initialized
+        getAuthProviderConfig();
+
+        // Override the user config and enable per user mode to "test" the callable methods
+        authProviderConfig.put(DataCloudAuthProvider.ENABLE_PER_USER_MODE_FIELD_NAME, 'true');
+        authProviderConfig.put(DataCloudAuthProvider.ENABLE_LOGIN_LOGGING_FIELD_NAME, 'true');
+
+        // Setup the response from the callable action
+        utl.Clbl.setActionResponse('updateMappingLoginDetails', null);
+        utl.Clbl.setActionResponse('checkUserMappingExists', true);
+        utl.Clbl.setActionResponse('getSubjectFromUserMapping', 'federationId');
+
+        // Setup the mock response
+        utl.Mck.setResponse(200, JSON.serializePretty(new Map<String,String>{
+            'access_token' => 'access_token_value',
+            'token_type'   => 'Bearer',
+            'expires_in'   => '1682439225'
+        }));
 
         // Test the method
         Test.startTest();
@@ -65,8 +81,12 @@ private with sharing class DataCloudAuthProviderTest {
     @IsTest
     static void testRefresh(){
         
-        // Set a mock resonse for the token
-        Test.setMock(HttpCalloutMock.class, new MockTokenResponse()); 
+        // Setup the mock response
+        utl.Mck.setResponse(200, JSON.serializePretty(new Map<String,String>{
+            'access_token' => 'access_token_value',
+            'token_type'   => 'Bearer',
+            'expires_in'   => '1682439225'
+        })); 
 
         // Test the method
         Test.startTest();
@@ -84,8 +104,12 @@ private with sharing class DataCloudAuthProviderTest {
     @IsTest
     static void testGetUserInfo(){
         
-        // Set a mock resonse for the token
-        Test.setMock(HttpCalloutMock.class, new MockTokenResponse());
+        // Setup the mock response
+        utl.Mck.setResponse(200, JSON.serializePretty(new Map<String,String>{
+            'access_token' => 'access_token_value',
+            'token_type'   => 'Bearer',
+            'expires_in'   => '1682439225'
+        }));
 
         // Test the method
         Test.startTest();
@@ -115,50 +139,52 @@ private with sharing class DataCloudAuthProviderTest {
 
 
     /**
-     * @description Method to test the generateHttpRequest() function
-     */
-    @IsTest
-    static void testGenerateHttpRequest(){
-        
-        // Test the http request is generated correcty
-        Test.startTest();
-        HttpRequest httpRequest = getAuthProvider().generateHttpRequest('/api/v1',getAuthProviderConfig(),'test=body');
-        Test.stopTest();
-
-        // Validate
-        Assert.areEqual('test=body', httpRequest.getBody(), 'Unexpected request body');
-        
-        // assert result for the endpoint
-        Assert.areEqual(
-            getAuthProviderConfig().get(DataCloudAuthProvider.MY_DOMAIN_FIELD_NAME) + '/api/v1',
-            httpRequest.getEndpoint(),
-            'Unexpected endpoint'
-        );
-    }
-
-
-    /**
      * @description Method to test the exceptions thrown in case there is no package installed
      */
     @IsTest
-    static void testGetAuthProviderUtil(){
+    static void testHandleException(){
+        
+        // Run once so it is initialized
+        getAuthProviderConfig();
+
+        // Override the user config and enable error logging to "test" the callable methods
+        authProviderConfig.put(DataCloudAuthProvider.ENABLE_ERROR_LOGGING_FIELD_NAME, 'true');
+ 
+        // Setup the response from the callable action 
+        utl.Clbl.setActionResponse('insertLog', null);
+
         try{
-            DataCloudAuthProvider.getAuthProviderUtil();
+            
+            // Try to handle the exception
+            DataCloudAuthProvider.handleException(
+                new DataCloudAuthProvider.GenericException('Message'),
+                getAuthProviderConfig()
+            );
+
+            // This method will fail the test as it should not be reached
+            utl.Tst.assertExceptionHasBeenThrow();
+
         }catch(Exception e){
-            try{
-                DataCloudAuthProvider.handleException(e,getAuthProviderConfig());
-            }catch(Exception se){
-                Assert.areEqual(
-                    String.format(
-                        DataCloudAuthProvider.GENERIC_EXCEPTION_MSG, 
-                        new String[]{e.getTypeName(), e.getMessage()}
-                    ),
-                    se.getMessage(),
-                    'Unexpected exception message'
-                );
-            }
+            
+            // Assert the exception works as expected
+            utl.Tst.assertExceptionMessage(
+                DataCloudAuthProvider.GENERIC_EXCEPTION_MSG,
+                String.valueOf(DataCloudAuthProvider.GenericException.class),
+                'Message',
+                e
+            ); 
         }
+        
     }
+
+
+
+
+    
+
+
+
+  
     
 
     /** **************************************************************************************************** **
@@ -221,28 +247,5 @@ private with sharing class DataCloudAuthProviderTest {
     /** **************************************************************************************************** **
      **                                         PRIVATE MOCK CLASSES                                         **
      ** **************************************************************************************************** **/
-    /**
-     * @description Class for testing the OAuthJwtClientAuthentication Methods
-     */
-     private class MockTokenResponse implements HttpCalloutMock { 
-        
-        /**
-         * @description Method to generate the mock token response
-         * @param       httpRequest The HttpRequest object to add the header values to
-         * @return      The mocked HttpResponse (Token)
-         */
-        public HttpResponse respond(HttpRequest httpRequest) { 
-            
-            DataCloudAuthProvider.TokenResponse tokenResponse = new DataCloudAuthProvider.TokenResponse();
-            tokenResponse.access_token  = 'access_token_value';
-            tokenResponse.token_type    = 'Bearer';
-            tokenResponse.expires_in    = '1682439225';
-
-            HttpResponse httpResponse = new HttpResponse();
-            httpResponse.setStatusCode(200);
-            httpResponse.setBody(JSON.serializePretty(tokenResponse));
-
-            return httpResponse;
-        }
-    }
+   
 }
