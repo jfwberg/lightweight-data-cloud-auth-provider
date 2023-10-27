@@ -1,9 +1,0 @@
-{
-    "timestamp": "2023-09-29T10:45:29.613Z",
-    "error": "Unsupported Media Type",
-    "message": "Content type '' not supported",
-    "path": "uri=/query/v2/queries",
-    "tenantId": "a360/prod3/[tenentId]]",
-    "internalErrorCode": "COMMON_ERROR_HTTP_MEDIA_TYPE_NOT_SUPPORTED",
-    "details": {}
-}

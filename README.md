@@ -14,10 +14,12 @@ If you use the *managed package* you need to installed the managed package depen
 |Version|2.3.0-1|
 |Managed Installation URL | */packaging/installPackage.apexp?p0=04tP30000007oePIAQ*
 |Unlocked Installation URL| */packaging/installPackage.apexp?p0=04tP30000007og1IAA*
+|GIT URL                  | https://github.com/jfwberg/lightweight-apex-unit-test-util-v2
 |Name|Lightweight - Apex REST Util|
 |Version|0.10.0-1|
 |Managed Installation URL | */packaging/installPackage.apexp?p0=04tP30000007sN3IAI*
 |Unlocked Installation URL| */packaging/installPackage.apexp?p0=04tP30000007sQHIAY*
+|GIT URL                  | https://github.com/jfwberg/lightweight-rest-util
 
 
 ## Package info
