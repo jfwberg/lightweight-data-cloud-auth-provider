@@ -31,11 +31,13 @@ If you use the *managed package* you need to installed the managed package depen
 ## Optional Dependencies
 This package has an extension that adds a basic (error) logging functionality and a user mapping utility that allows the Auth Provider to work in a user context using "Per User" instead of "Named Principal".
 
+| Info | Value |
+|---|---|
 |Name|Lightweight - Auth Provider Util v2|
 |Version|0.6.0-1|
 |Managed Installation URL | */packaging/installPackage.apexp?p0=04tP30000007t1NIAQ*
 |Unlocked Installation URL| */packaging/installPackage.apexp?p0=04tP30000007tB3IAI*
-|GIT URL                  | https://github.com/jfwberg/lightweight-auth-provider-util.git
+|GIT URL                  | https://github.com/jfwberg/lightweight-auth-provider-util
 
 ## Important
 - Security is no easy subject: Before implementing this (or any) solution, always validate what you're doing with a certified sercurity expert and your certified implementation partner
