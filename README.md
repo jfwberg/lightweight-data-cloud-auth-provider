@@ -11,30 +11,30 @@ If you use the *managed package* you need to installed the managed package depen
 | Info | Value |
 |---|---|
 |Name|Lightweight - Apex Unit Test Util v2|
-|Version|2.2.0-2|
-|Managed Installation URL | */packaging/installPackage.apexp?p0=04tP30000007Ez7IAE*
-|Unlocked Installation URL| */packaging/installPackage.apexp?p0=04tP30000007F3xIAE*
+|Version|2.3.0-1|
+|Managed Installation URL | */packaging/installPackage.apexp?p0=04tP30000007oePIAQ*
+|Unlocked Installation URL| */packaging/installPackage.apexp?p0=04tP30000007og1IAA*
 |Name|Lightweight - Apex REST Util|
-|Version|0.9.0-1|
-|Managed Installation URL | */packaging/installPackage.apexp?p0=04tP30000007FOvIAM*
-|Unlocked Installation URL| */packaging/installPackage.apexp?p0=04tP30000007FVNIA2*
+|Version|0.10.0-1|
+|Managed Installation URL | */packaging/installPackage.apexp?p0=04tP30000007sN3IAI*
+|Unlocked Installation URL| */packaging/installPackage.apexp?p0=04tP30000007sQHIAY*
 
 
 ## Package info
 | Info | Value |
 |---|---|
 |Name|Lightweight - Data Cloud Auth Provider|
-|Version|0.2.0-1|
-|Managed Installation URL | */packaging/installPackage.apexp?p0=04tP30000007FvBIAU*
-|Unlocked Installation URL| */packaging/installPackage.apexp?p0=04tP30000007GCvIAM*
+|Version|0.3.0-1|
+|Managed Installation URL | */packaging/installPackage.apexp?p0=04tP30000007slFIAQ*
+|Unlocked Installation URL| */packaging/installPackage.apexp?p0=04tP30000007stJIAQ*
 
 ## Optional Dependencies
 This package has an extension that adds a basic (error) logging functionality and a user mapping utility that allows the Auth Provider to work in a user context using "Per User" instead of "Named Principal".
 
 |Name|Lightweight - Auth Provider Util v2|
-|Version|0.9.0-1|
-|Managed Installation URL | */packaging/installPackage.apexp?p0=04tP30000007GUfIAM*
-|Unlocked Installation URL| */packaging/installPackage.apexp?p0=04tP30000007GXtIAM*
+|Version|0.6.0-1|
+|Managed Installation URL | */packaging/installPackage.apexp?p0=04tP30000007t1NIAQ*
+|Unlocked Installation URL| */packaging/installPackage.apexp?p0=04tP30000007tB3IAI*
 |GIT URL                  | https://github.com/jfwberg/lightweight-auth-provider-util.git
 
 ## Important
