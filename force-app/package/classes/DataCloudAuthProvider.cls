@@ -6,7 +6,7 @@
  * @description   A lightweight Auth Provider to connect to the Data Cloud APIs through a Named Credential
  * @note           In order to use the (error) logging functions and to enabled "Per User" mode for
  *                 user context mappings, It is required that the "Lightweight - Auth Provider Util
- *                 v2" (04t4K000002Jv1tQAC) package is installed.
+ *                 v2" package is installed.
  */
 @SuppressWarnings('PMD.CyclomaticComplexity')
 public with sharing class DataCloudAuthProvider extends Auth.AuthProviderPluginClass{
@@ -14,9 +14,32 @@ public with sharing class DataCloudAuthProvider extends Auth.AuthProviderPluginC
     /** **************************************************************************************************** **
      **                                          PRIVATE VARIABLES                                           **
      ** **************************************************************************************************** **/
+    // The type of flow (Initial or Refresh)
+     private String flowType;
+
+    // For debugging purposes extract the callout data
+    private utl.Rst sfTokenCallout;
+    private utl.Rst dcTokenCallout;
+
     // The optional auth provider util for error logging and per user principal (requires the "Lightweight - Auth Provider Util v2" package)
     // If you dont want this depencency, disable the options "Enable Error Logging", "Enabled Per user principal" and "Enabled Per User Login Logging" in the Custom Auth Provider Setup.
-    private static Callable authProviderUtil;
+    private Callable authProviderUtil;
+
+    // The details of the logged in user
+    private String        loggedInUserId   = UserInfo.getUserId();
+    private Auth.UserData loggedInUserData = new Auth.UserData(
+        UserInfo.getUserId(),    // User Id
+        UserInfo.getFirstName(), // First Name
+        UserInfo.getLastName(),  // Last Name
+        UserInfo.getFirstName() + ' ' +  UserInfo.getLastName(), // Full Name (user name here)
+        UserInfo.getUserEmail(), // Email Address
+        null,                    // Link
+        UserInfo.getUserName(),  // Username
+        UserInfo.getLocale(),    // Locale
+        null,                    // Provider
+        null,                    // Site login
+        null                     // Attribute map
+    );
 
 
     /** **************************************************************************************************** **
@@ -30,7 +53,9 @@ public with sharing class DataCloudAuthProvider extends Auth.AuthProviderPluginC
     @TestVisible private final static String INTEG_USERNAME_FIELD_NAME  = String.valueOf(DataCloudAuthProvider__mdt.Integration_Username__c);
     @TestVisible private final static String CONNECTED_APP_ID_FIELD_NAME= String.valueOf(DataCloudAuthProvider__mdt.Connected_App_Id__c);
     
-    
+    // Data Space settings
+    @TestVisible private final static String DATA_SPACE_NAME_FIELD_NAME = String.valueOf(DataCloudAuthProvider__mdt.Data_Space_Name__c);
+
     // Specify the name for your auth provider for the callback URL
     @TestVisible private final static String AUTH_PROVIDER_NAME_FIELD_NAME    = String.valueOf(DataCloudAuthProvider__mdt.Auth_Provider_Name__c);
 
@@ -41,12 +66,16 @@ public with sharing class DataCloudAuthProvider extends Auth.AuthProviderPluginC
     @TestVisible private final static String ENABLE_PER_USER_MODE_FIELD_NAME = String.valueOf(DataCloudAuthProvider__mdt.Enable_Per_User_Mode__c);
     @TestVisible private final static String ENABLE_ERROR_LOGGING_FIELD_NAME = String.valueOf(DataCloudAuthProvider__mdt.Enable_Error_Logging__c);
     @TestVisible private final static String ENABLE_LOGIN_LOGGING_FIELD_NAME = String.valueOf(DataCloudAuthProvider__mdt.Enable_Per_User_Login_Logging__c);
+    @TestVisible private final static String ENABLE_LOGIN_HISTORY_FIELD_NAME = String.valueOf(DataCloudAuthProvider__mdt.Enable_Login_History__c);
 
     // This will generate the GUID that is used to identify this specific transaction so it can be followed through the logs
     @TestVisible private final static String GUID = utl.Rst.guid();
 
     // Parameter names
     @TestVisible private final static String PARAM_NAME_STATE = 'state';
+
+    // Test Cookie header
+    @TestVisible private final static String TEST_COOKIE_HEADER = 'sid=[SESSION_ID];';
 
     // Any messages go here
     @TestVisible private final static String GENERIC_EXCEPTION_MSG      = 'A {0} was thrown with the message: {1}';
@@ -97,19 +126,54 @@ public with sharing class DataCloudAuthProvider extends Auth.AuthProviderPluginC
      *              just ignore this value or put in a random, invalid value.
      */
     public Auth.AuthProviderTokenResponse handleCallback(Map<String,String> authProviderConfiguration, Auth.AuthProviderCallbackState callbackState){
-       
         try{
+            // Set the flow type
+            this.flowType = 'Initial';
+
+            // Check if the "per user" principal is enabled and if so set the logged in user Id
+            if(Boolean.valueOf(authProviderConfiguration.get(ENABLE_PER_USER_MODE_FIELD_NAME))){
+                this.setLoggedInUserDetails(callbackState);
+            }
+
             // Retrieve a new token from the token endpoint
             TokenResponse sfTokenResponse = this.retrieveSalesforceToken(authProviderConfiguration);
 
+            // Manage the login history
+            this.handleInsertHistoryRecord(
+                authProviderConfiguration,
+                'Initial',
+                String.isNotBlank(sfTokenResponse.access_token),
+                'Salesforce',
+                this.sfTokenCallout
+            );
+
+            // Error with the token, purposely thrown here to manage proper error logging
+            if(String.isBlank(sfTokenResponse.access_token)){
+                throw new TokenException(String.format(INVALID_TOKEN_RESPONSE_MSG, new String[]{sfTokenCallout.getResponse().getBody()}));
+            }
+
             // Retrieve the access token from the data cloud API call
             TokenResponse dcTokenResponse = this.retrieveDataCloudToken(authProviderConfiguration, sfTokenResponse.access_token);
+
+            // Manage the login history
+            this.handleInsertHistoryRecord(
+                authProviderConfiguration,
+                'Initial',
+                String.isNotBlank(dcTokenResponse.access_token),
+                'Data Cloud',
+                this.dcTokenCallout
+            );
+
+            // Error with the token, purposely thrown here to manage proper error logging
+            if(String.isBlank(dcTokenResponse.access_token)){
+                throw new TokenException(String.format(INVALID_TOKEN_RESPONSE_MSG, new String[]{dcTokenCallout.getResponse().getBody()}));
+            }
 
             // Return the the token response, there is no refresh token so we just set a random value
             return new Auth.AuthProviderTokenResponse(
                 authProviderConfiguration.get(AUTH_PROVIDER_NAME_FIELD_NAME)?.trim(),
                 dcTokenResponse.access_token,
-                'NoRefreshTokenInThisOAuthFlow',
+                loggedInUserId, // The logged in user is used for the refresh flow to know what user to login (if per user enabled else ignored)
                 callbackState.queryParameters.get(PARAM_NAME_STATE)
             ); 
         }catch(Exception e){
@@ -133,16 +197,50 @@ public with sharing class DataCloudAuthProvider extends Auth.AuthProviderPluginC
      */
     public override Auth.OAuthRefreshResult refresh(Map<String,String> authProviderConfiguration, String refreshToken){
         try{
+            // Check if the "per user" principal is enabled and if so set the logged in user Id
+            // This way the correct user is
+            if(Boolean.valueOf(authProviderConfiguration.get(ENABLE_PER_USER_MODE_FIELD_NAME))){
+                loggedInUserId = refreshToken;
+            }
+
             // Retrieve a new token from the token endpoint
             TokenResponse sfTokenResponse = this.retrieveSalesforceToken(authProviderConfiguration);
 
+            // Manage the login history
+            this.handleInsertHistoryRecord(
+                authProviderConfiguration,
+                'Refresh',
+                String.isNotBlank(sfTokenResponse.access_token),
+                'Salesforce',
+                this.sfTokenCallout
+            );
+
+            // Error with the token, purposely thrown here to manage proper error logging
+            if(String.isBlank(sfTokenResponse.access_token)){
+                throw new TokenException(String.format(INVALID_TOKEN_RESPONSE_MSG, new String[]{sfTokenCallout.getResponse().getBody()}));
+            }
+
             // Retrieve the access token from the data cloud API call
             TokenResponse dcTokenResponse = this.retrieveDataCloudToken(authProviderConfiguration, sfTokenResponse.access_token);
-  
+
+            // Manage the login history
+            this.handleInsertHistoryRecord(
+                authProviderConfiguration,
+                'Refresh',
+                String.isNotBlank(dcTokenResponse.access_token),
+                'Data Cloud',
+                this.dcTokenCallout
+            );
+
+            // Error with the token, purposely thrown here to manage proper error logging
+            if(String.isBlank(dcTokenResponse.access_token)){
+                throw new TokenException(String.format(INVALID_TOKEN_RESPONSE_MSG, new String[]{dcTokenCallout.getResponse().getBody()}));
+            }
+
             // Return the (refresh) token response
             return new Auth.OAuthRefreshResult(
                 dcTokenResponse.access_token,
-                dcTokenResponse.issued_token_type
+                refreshToken
             );
         }catch(Exception e){
             handleException(e, authProviderConfiguration);
@@ -169,19 +267,7 @@ public with sharing class DataCloudAuthProvider extends Auth.AuthProviderPluginC
      *              integration user.
      */
     public Auth.UserData getUserInfo(Map<string,string> authProviderConfiguration, Auth.AuthProviderTokenResponse response) {
-        return new Auth.UserData(
-            'IntegrationUserId',// User Id
-            'Integration',      // First Name
-            'User',             // Last Name
-            'Integration User', // Full Name
-            'integration.user@example.com.invalid', // Email Address
-            'link',             // Link
-            null,               // Username
-            null,               // Locale
-            null,               // Provider
-            null,               // Site login
-            null                // Attribute map
-        );
+        return loggedInUserData;
     }
 
 
@@ -228,8 +314,6 @@ public with sharing class DataCloudAuthProvider extends Auth.AuthProviderPluginC
     }
 
 
- 
-
     /**
      * @description Method that generates the JWT, JWS and HTTP Request to retrieve an access token
      *              from the configured token endpoint.
@@ -241,9 +325,8 @@ public with sharing class DataCloudAuthProvider extends Auth.AuthProviderPluginC
      */
     private TokenResponse retrieveSalesforceToken(Map<String,String> authProviderConfiguration){
         
-        // Call SF token endpoint
-        return this.parseTokenResponse(new utl.Rst()
-            .setHandleSfResponse(true)
+        // Call SF token endpoint, extract for error handling
+        this.sfTokenCallout = new utl.Rst()
             .setEndpoint(authProviderConfiguration.get(MY_DOMAIN_FIELD_NAME) + '/services/oauth2/token')
             .setContentTypeHeaderToFormUrlEncoded(
                 new Map<String,String>{
@@ -251,10 +334,10 @@ public with sharing class DataCloudAuthProvider extends Auth.AuthProviderPluginC
                     'assertion'  => this.generateJWS(authProviderConfiguration)
                 }
             )
-            .call()
-            .getResponse()
-            .getBody()
-        );
+            .call();
+            
+        // Parse the response into a token response
+        return this.parseTokenResponse(this.sfTokenCallout.getResponse().getBody());
     }
 
 
@@ -269,36 +352,27 @@ public with sharing class DataCloudAuthProvider extends Auth.AuthProviderPluginC
      * @throws      TokenException            There is an error in parsing the token response
      */
     private TokenResponse retrieveDataCloudToken(Map<String,String> authProviderConfiguration, String sessionId){
-     
-        // Call SF token endpoint
-        String tokenResponseBody = new utl.Rst()
-            .setHandleSfResponse(true)
-            .setEndpoint(authProviderConfiguration.get(MY_DOMAIN_FIELD_NAME) + '/services/a360/token')
-            .setContentTypeHeaderToFormUrlEncoded(
-                new Map<String,String>{
-                    'grant_type'        => 'urn:salesforce:grant-type:external:cdp',
-                    'subject_token'     => sessionId,
-                    'subject_token_type'=> 'urn:ietf:params:oauth:token-type:access_token'
-                }
-            )
-            .call()
-            .getResponse()
-            .getBody();
         
-  
-            // Check if the per user principal is enabled, if so update the log entry for that user mapping
-            if( Boolean.valueOf(authProviderConfiguration.get(ENABLE_PER_USER_MODE_FIELD_NAME)) &&
-                Boolean.valueOf(authProviderConfiguration.get(ENABLE_LOGIN_LOGGING_FIELD_NAME))){
-                
-                // Update the mapping record    
-                getAuthProviderUtil().call('updateMappingLoginDetails', new Map<String, Object> { 
-                    'authProviderName' => authProviderConfiguration.get(AUTH_PROVIDER_NAME_FIELD_NAME)?.trim(),
-                    'userId'           => UserInfo.getUserId()
-                });
-            }
-            
-            // Parse the response into a token response
-            return this.parseTokenResponse(tokenResponseBody);
+        // Map holding the body parameters for the
+        Map<String,String> bodyParams = new Map<String,String>{
+            'grant_type'        => 'urn:salesforce:grant-type:external:cdp',
+            'subject_token'     => sessionId,
+            'subject_token_type'=> 'urn:ietf:params:oauth:token-type:access_token'
+        };
+
+        // If a data space is provider, populate the data space parameter
+        if(!String.isBlank(String.valueOf(authProviderConfiguration.get(DATA_SPACE_NAME_FIELD_NAME)))){
+            bodyParams.put('dataspace',String.valueOf(authProviderConfiguration.get(DATA_SPACE_NAME_FIELD_NAME)));
+        }
+
+        // Call DC token endpoint, extract for error handling
+        this.dcTokenCallout = new utl.Rst()
+            .setEndpoint(authProviderConfiguration.get(MY_DOMAIN_FIELD_NAME) + '/services/a360/token')
+            .setContentTypeHeaderToFormUrlEncoded(bodyParams)
+            .call();
+        
+        // Parse the response into a token response
+        return this.parseTokenResponse(this.dcTokenCallout.getResponse().getBody());
     }
 
 
@@ -364,7 +438,7 @@ public with sharing class DataCloudAuthProvider extends Auth.AuthProviderPluginC
      *                                        type.
      * @return      The audience URL for either the Sandbox or for Production
      */
-    private static String getAudience(Map<String,String> authProviderConfiguration){
+    private String getAudience(Map<String,String> authProviderConfiguration){
         return (
             (Boolean.valueOf(authProviderConfiguration.get(IS_SANDBOX_FIELD_NAME))) ?
                 'https://test.salesforce.com' :    
@@ -383,7 +457,7 @@ public with sharing class DataCloudAuthProvider extends Auth.AuthProviderPluginC
      * @throws      GenericException          Always
      */
     @TestVisible
-    private static void handleException(Exception e, Map<String,String> authProviderConfiguration){
+    private void handleException(Exception e, Map<String,String> authProviderConfiguration){
         
         // Generate a generic exception message for the error handling and to be thrown to the user
         String exceptionMessage = String.format(GENERIC_EXCEPTION_MSG, new String[]{e.getTypeName(), e.getMessage()});
@@ -395,7 +469,7 @@ public with sharing class DataCloudAuthProvider extends Auth.AuthProviderPluginC
             
             getAuthProviderUtil().call('insertLog', new Map<String, Object> { 
                 'authProviderName' => authProviderConfiguration.get(AUTH_PROVIDER_NAME_FIELD_NAME)?.trim(),
-                'userId'           => UserInfo.getUserId(),
+                'userId'           => loggedInUserId,
                 'logId'            => GUID,
                 'message'          => exceptionMessage
             });
@@ -416,7 +490,7 @@ public with sharing class DataCloudAuthProvider extends Auth.AuthProviderPluginC
      *                                        type.
      * @return      The subject that will be part of the JWT sub parameter
      */
-    private static String getSubject(Map<String,String> authProviderConfiguration){
+    private String getSubject(Map<String,String> authProviderConfiguration){
         
         // Check if the per user principal is enabled
         if(Boolean.valueOf(authProviderConfiguration.get(ENABLE_PER_USER_MODE_FIELD_NAME))){
@@ -424,12 +498,12 @@ public with sharing class DataCloudAuthProvider extends Auth.AuthProviderPluginC
             // If no user mapping exists throw an error
             if(! (Boolean) getAuthProviderUtil().call('checkUserMappingExists', new Map<String, Object> { 
                 'authProviderName' => authProviderConfiguration.get(AUTH_PROVIDER_NAME_FIELD_NAME)?.trim(),
-                'userId'           => UserInfo.getUserId()
+                'userId'           => loggedInUserId
             })){
                 throw new SubjectException(
                     String.format(
                         NO_USER_MAPPING_MSG,
-                        new String[]{authProviderConfiguration.get(AUTH_PROVIDER_NAME_FIELD_NAME) , UserInfo.getUserId()}
+                        new String[]{authProviderConfiguration.get(AUTH_PROVIDER_NAME_FIELD_NAME) , loggedInUserId}
                     )
                 );
             }
@@ -437,12 +511,29 @@ public with sharing class DataCloudAuthProvider extends Auth.AuthProviderPluginC
             // Return the subject from the user mapping record related to this user and auth provider
             return (String) getAuthProviderUtil().call('getSubjectFromUserMapping', new Map<String, Object> { 
                 'authProviderName' => authProviderConfiguration.get(AUTH_PROVIDER_NAME_FIELD_NAME)?.trim(),
-                'userId'           => UserInfo.getUserId()
+                'userId'           => loggedInUserId
             });
         }
         
         // By default return the NamedPrincipal
         return authProviderConfiguration.get(INTEG_USERNAME_FIELD_NAME)?.trim();
+    }
+
+
+    /**
+     * @description Method to set the user id for the logged in user
+     * @param  callbackState The callback state containing the the cookie headers
+     */
+    @TestVisible
+    private void setLoggedInUserDetails(Auth.AuthProviderCallbackState callbackState){
+     
+        // Get the data for the  logged in user based on the cookie header
+        loggedInUserData = (Auth.UserData) getAuthProviderUtil().call('getAuthUserDataFromCookieHeader', new Map<String, Object> { 
+            'cookieHeader' => (!Test.IsRunningTest()) ? callbackState.headers.get('Cookie') : TEST_COOKIE_HEADER
+        });
+
+        // Extract the user Id for ease of use later
+        loggedInUserId = loggedInUserData.identifier;
     }
 
     
@@ -454,22 +545,51 @@ public with sharing class DataCloudAuthProvider extends Auth.AuthProviderPluginC
      * @throws      GenericException The lwt.AuthProviderUtil class does not exist.
      */
     @TestVisible
-    private static Callable getAuthProviderUtil(){
-        if(authProviderUtil == null){
+    private Callable getAuthProviderUtil(){
+        if(this.authProviderUtil == null){
             
             // Allow for testing a callable method
             if(Test.isRunningTest()){return (Callable) utl.Clbl.getInstance();}
             
             // Dymaically instatiate class 
-            authProviderUtil = (Callable) Type.forName('lwt.AuthProviderUtil')?.newInstance();
+            this.authProviderUtil = (Callable) Type.forName('lwt.AuthProviderUtil')?.newInstance();
             
             // Throw an error if the package is not installed
             // Add Test check here so the test does not fail in case the package is installed
-            if(authProviderUtil == null){
+            if(this.authProviderUtil == null){
                 throw new GenericException(MISSING_UTIL_PACKAGE_MSG);
             }
         }
-        return authProviderUtil;
+        return this.authProviderUtil;
+    }
+
+
+    /**
+     * @description Method that generates the JWT, JWS and HTTP Request to retrieve an access token
+     *              from the configured token endpoint.
+     * @param       authProviderConfiguration The configuration items for the custom authentication
+     *                                        provider that have been configured in the custom metadata
+     *                                        type.
+     * @param       flowType                  The type of login flow (Initial or Refresh)
+     * @param       success                   Inidcator if the login was successful or not
+     * @param       providerType              Optional description of the provider. This is handy when you
+     *                                        have chained callouts.
+     * @param       callout                   The callout details for error logging
+     */
+    @SuppressWarnings('PMD.ExcessiveParameterList')
+    private void handleInsertHistoryRecord(Map<String,String> authProviderConfiguration, String flowType, Boolean success, String providerType, utl.Rst callout){
+        // If login history is enabled, create a login history entry
+        if(Boolean.valueOf(authProviderConfiguration.get(ENABLE_LOGIN_HISTORY_FIELD_NAME))){
+            getAuthProviderUtil().call('insertLoginHistoryRecord', new Map<String, Object> { 
+                'authProviderName' => authProviderConfiguration.get(AUTH_PROVIDER_NAME_FIELD_NAME)?.trim(),
+                'userId'           => loggedInUserId,
+                'flowType'         => flowType,
+                'timestamp'        => Datetime.now(),
+                'success'          => success,
+                'providerType'     => providerType,
+                'loginInfo'        => success ? null : callout?.getResponse()?.getBody()
+            });
+        }
     }
 
 

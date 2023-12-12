@@ -45,17 +45,18 @@ private with sharing class DataCloudAuthProviderTest {
     @IsTest
     static void testHandleCallback(){
         
-        // Run once so it is initialized
-        getAuthProviderConfig();
-
         // Override the user config and enable per user mode to "test" the callable methods
-        authProviderConfig.put(DataCloudAuthProvider.ENABLE_PER_USER_MODE_FIELD_NAME, 'true');
-        authProviderConfig.put(DataCloudAuthProvider.ENABLE_LOGIN_LOGGING_FIELD_NAME, 'true');
+        getAuthProviderConfig().put(DataCloudAuthProvider.ENABLE_PER_USER_MODE_FIELD_NAME, 'true');
+        getAuthProviderConfig().put(DataCloudAuthProvider.ENABLE_LOGIN_LOGGING_FIELD_NAME, 'true');
+
+        utl.Clbl.setActionResponse('getAuthUserDataFromCookieHeader',  getAuthProvider().getUserInfo(getAuthProviderConfig(),null));
 
         // Setup the response from the callable action
         utl.Clbl.setActionResponse('updateMappingLoginDetails', null);
-        utl.Clbl.setActionResponse('checkUserMappingExists', true);
+        utl.Clbl.setActionResponse('checkUserMappingExists',    true);
         utl.Clbl.setActionResponse('getSubjectFromUserMapping', 'federationId');
+        utl.Clbl.setActionResponse('insertLoginHistoryRecord',  null);
+        
 
         // Setup the mock response
         utl.Mck.setResponse(200, JSON.serializePretty(new Map<String,String>{
@@ -81,6 +82,9 @@ private with sharing class DataCloudAuthProviderTest {
     @IsTest
     static void testRefresh(){
         
+        // Setup the callable
+        utl.Clbl.setActionResponse('insertLoginHistoryRecord',  null);
+
         // Setup the mock response
         utl.Mck.setResponse(200, JSON.serializePretty(new Map<String,String>{
             'access_token' => 'access_token_value',
@@ -104,6 +108,9 @@ private with sharing class DataCloudAuthProviderTest {
     @IsTest
     static void testGetUserInfo(){
         
+        // Setup the callable
+        utl.Clbl.setActionResponse('insertLoginHistoryRecord',  null);
+
         // Setup the mock response
         utl.Mck.setResponse(200, JSON.serializePretty(new Map<String,String>{
             'access_token' => 'access_token_value',
@@ -120,7 +127,7 @@ private with sharing class DataCloudAuthProviderTest {
         Test.stopTest();
 
         // Assert test results
-        Assert.areEqual('integration.user@example.com.invalid',    userData.email, 'Unexpected email value');
+        Assert.areEqual(UserInfo.getUserEmail(),    userData.email, 'Unexpected email value');
     }
 
 
@@ -142,6 +149,7 @@ private with sharing class DataCloudAuthProviderTest {
      * @description Method to test the exceptions thrown in case there is no package installed
      */
     @IsTest
+    @SuppressWarnings('PMD.ApexUnitTestClassShouldHaveAsserts')
     static void testHandleException(){
         
         // Run once so it is initialized
@@ -154,9 +162,10 @@ private with sharing class DataCloudAuthProviderTest {
         utl.Clbl.setActionResponse('insertLog', null);
 
         try{
+            DataCloudAuthProvider dcap = new DataCloudAuthProvider();
             
             // Try to handle the exception
-            DataCloudAuthProvider.handleException(
+            dcap.handleException(
                 new DataCloudAuthProvider.GenericException('Message'),
                 getAuthProviderConfig()
             );
@@ -177,15 +186,6 @@ private with sharing class DataCloudAuthProviderTest {
         
     }
 
-
-
-
-    
-
-
-
-  
-    
 
     /** **************************************************************************************************** **
      **                                      PRIVATE TEST DATA METHODS                                       **
@@ -237,7 +237,8 @@ private with sharing class DataCloudAuthProviderTest {
                 DataCloudAuthProvider.JWS_SIGNING_CERT_FIELD_NAME     => 'certName',
                 DataCloudAuthProvider.ENABLE_PER_USER_MODE_FIELD_NAME => 'false',
                 DataCloudAuthProvider.ENABLE_ERROR_LOGGING_FIELD_NAME => 'false',
-                DataCloudAuthProvider.ENABLE_LOGIN_LOGGING_FIELD_NAME => 'false'
+                DataCloudAuthProvider.ENABLE_LOGIN_LOGGING_FIELD_NAME => 'false',
+                DataCloudAuthProvider.ENABLE_LOGIN_HISTORY_FIELD_NAME => 'true'
             };
         }
         return authProviderConfig;

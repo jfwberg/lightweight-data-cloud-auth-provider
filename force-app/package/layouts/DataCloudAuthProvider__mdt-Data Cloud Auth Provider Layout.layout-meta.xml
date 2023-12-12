@@ -36,6 +36,10 @@
             </layoutItems>
             <layoutItems>
                 <behavior>Edit</behavior>
+                <field>Data_Space_Name__c</field>
+            </layoutItems>
+            <layoutItems>
+                <behavior>Edit</behavior>
                 <field>Is_Sandbox__c</field>
             </layoutItems>
         </layoutColumns>
@@ -68,6 +72,10 @@
             <layoutItems>
                 <behavior>Edit</behavior>
                 <field>Enable_Per_User_Login_Logging__c</field>
+            </layoutItems>
+            <layoutItems>
+                <behavior>Edit</behavior>
+                <field>Enable_Login_History__c</field>
             </layoutItems>
         </layoutColumns>
         <layoutColumns/>
@@ -108,7 +116,7 @@
     <showRunAssignmentRulesCheckbox>false</showRunAssignmentRulesCheckbox>
     <showSubmitAndAttachButton>false</showSubmitAndAttachButton>
     <summaryLayout>
-        <masterLabel>00h0C000002YeFH</masterLabel>
+        <masterLabel>00hAd000000bm7J</masterLabel>
         <sizeX>4</sizeX>
         <sizeY>0</sizeY>
         <summaryLayoutStyle>Default</summaryLayoutStyle>

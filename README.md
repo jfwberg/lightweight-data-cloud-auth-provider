@@ -1,3 +1,9 @@
+- Update blog with correct IDs
+- Add Data_Space explanaition to blog (added in the token exchange process)
+- Add login history for debugging purposes
+- Test multi user approach (per user)
+- Fix multi user approach as well 
+
 # Lightweight - Data Cloud Auth Provider
 A lightweight Auth Provider to connect to the Data Cloud APIs through a Named Credential
 
@@ -22,24 +28,25 @@ If you use the *managed package* you need to installed the managed package depen
 |GIT URL                  | https://github.com/jfwberg/lightweight-rest-util
 
 
-## Package info
-| Info | Value |
-|---|---|
-|Name|Lightweight - Data Cloud Auth Provider|
-|Version|0.3.0-1|
-|Managed Installation URL | */packaging/installPackage.apexp?p0=04tP30000007slFIAQ*
-|Unlocked Installation URL| */packaging/installPackage.apexp?p0=04tP30000007stJIAQ*
-
 ## Optional Dependencies
 This package has an extension that adds a basic (error) logging functionality and a user mapping utility that allows the Auth Provider to work in a user context using "Per User" instead of "Named Principal".
 
 | Info | Value |
 |---|---|
 |Name|Lightweight - Auth Provider Util v2|
-|Version|0.6.0-1|
-|Managed Installation URL | */packaging/installPackage.apexp?p0=04tP30000007t1NIAQ*
-|Unlocked Installation URL| */packaging/installPackage.apexp?p0=04tP30000007tB3IAI*
+|Version|0.10.0-1|
+|Managed Installation URL | */packaging/installPackage.apexp?p0=04tP3000000ET0XIAW*
+|Unlocked Installation URL| */packaging/installPackage.apexp?p0=04tP3000000ET6zIAG*
 |GIT URL                  | https://github.com/jfwberg/lightweight-auth-provider-util
+
+## Package info
+| Info | Value |
+|---|---|
+|Name|Lightweight - Data Cloud Auth Provider|
+|Version|0.4.0-1|
+|Managed Installation URL | */packaging/installPackage.apexp?p0=04tP3000000EUJBIA4*
+|Unlocked Installation URL| */packaging/installPackage.apexp?p0=04tP3000000EUUTIA4*
+
 
 ## Important
 - Security is no easy subject: Before implementing this (or any) solution, always validate what you're doing with a certified sercurity expert and your certified implementation partner
