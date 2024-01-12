@@ -164,6 +164,17 @@ public with sharing class DataCloudAuthProvider extends Auth.AuthProviderPluginC
                 this.dcTokenCallout
             );
 
+            // Check if the per user principal is enabled, if so update the log entry for that user mapping
+            if( Boolean.valueOf(authProviderConfiguration.get(ENABLE_PER_USER_MODE_FIELD_NAME)) &&
+                Boolean.valueOf(authProviderConfiguration.get(ENABLE_LOGIN_LOGGING_FIELD_NAME))){
+                
+                // Update the mapping record    
+                getAuthProviderUtil().call('updateMappingLoginDetails', new Map<String, Object> { 
+                    'authProviderName' => authProviderConfiguration.get(AUTH_PROVIDER_NAME_FIELD_NAME)?.trim(),
+                    'userId'           => loggedInUserId
+                });
+            }
+
             // Error with the token, purposely thrown here to manage proper error logging
             if(String.isBlank(dcTokenResponse.access_token)){
                 throw new TokenException(String.format(INVALID_TOKEN_RESPONSE_MSG, new String[]{dcTokenCallout.getResponse().getBody()}));
@@ -231,6 +242,17 @@ public with sharing class DataCloudAuthProvider extends Auth.AuthProviderPluginC
                 'Data Cloud',
                 this.dcTokenCallout
             );
+
+            // Check if the per user principal is enabled, if so update the log entry for that user mapping
+            if( Boolean.valueOf(authProviderConfiguration.get(ENABLE_PER_USER_MODE_FIELD_NAME)) &&
+                Boolean.valueOf(authProviderConfiguration.get(ENABLE_LOGIN_LOGGING_FIELD_NAME))){
+                
+                // Update the mapping record    
+                getAuthProviderUtil().call('updateMappingLoginDetails', new Map<String, Object> { 
+                    'authProviderName' => authProviderConfiguration.get(AUTH_PROVIDER_NAME_FIELD_NAME)?.trim(),
+                    'userId'           => loggedInUserId
+                });
+            }
 
             // Error with the token, purposely thrown here to manage proper error logging
             if(String.isBlank(dcTokenResponse.access_token)){

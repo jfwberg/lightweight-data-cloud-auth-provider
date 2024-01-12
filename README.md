@@ -1,9 +1,3 @@
-- Update blog with correct IDs
-- Add Data_Space explanaition to blog (added in the token exchange process)
-- Add login history for debugging purposes
-- Test multi user approach (per user)
-- Fix multi user approach as well 
-
 # Lightweight - Data Cloud Auth Provider
 A lightweight Auth Provider to connect to the Data Cloud APIs through a Named Credential
 
