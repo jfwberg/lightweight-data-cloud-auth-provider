@@ -1,29 +1,31 @@
 REM --------------------------------------------------------
 REM MANGED DEPENDENCIES (PICK EITHER MANAGED OR UNLOCKED)  -
 REM --------------------------------------------------------
-rem Lightweight - Apex Unit Test Util v2@2.3.0-2
-sf package install -p "04tP30000007oePIAQ" -w 30
+rem Lightweight - Apex Unit Test Util v2@2.4.0-2
+sf package install -p "04tP3000000M6OXIA0" -w 30
 
-rem Lightweight - REST Util@0.10.0-1
-sf package install -p "04tP30000007sN3IAI" -w 30
+rem Lightweight - REST Util@0.11.0-1
+sf package install -p "04tP3000000M6gHIAS" -w 30
+
+
 
 REM ----------------- OPTIONAL BUT ADVICED -----------------
-rem Lightweight - Auth Provider Util v2@0.10.0-1
-sf package install -p "04tP3000000ET0XIAW" -w 30
+rem Lightweight - Auth Provider Util v2@0.11.0-1
+sf package install -p "04tP3000000M7FlIAK" -w 30
 
 
 REM --------------------------------------------------------
 REM UNLOCKED DEPENDENCIES (PICK EITHER MANAGED OR UNLOCKED)-
 REM --------------------------------------------------------
-rem Lightweight - Apex Unit Test Util v2 (Unlocked)@2.3.0-2
-sf package install -p "04tP30000007og1IAA" -w 30
+rem Lightweight - Apex Unit Test Util v2 (Unlocked)@2.4.0-2
+sf package install -p "04tP3000000M6Q9IAK" -w 30
 
-rem Lightweight - REST Util (Unlocked)@0.10.0-1
-sf package install -p "04tP30000007sQHIAY" -w 30
+rem Lightweight - REST Util (Unlocked)@0.11.0-1
+sf package install -p "04tP3000000M6htIAC" -w 30
 
 REM ----------------- OPTIONAL BUT ADVICED -----------------
-rem Lightweight - Auth Provider Util v2 (Unlocked)@0.10.0-1
-sf package install -p "04tP3000000ET6zIAG" -w 30
+rem Lightweight - Auth Provider Util v2 (Unlocked)@0.11.0-1
+sf package install -p "04tP3000000M7HNIA0" -w 30
 
 
 REM --------------------------------------------------------
