@@ -41,10 +41,19 @@ This package has an extension that adds a basic (error) logging functionality an
 |Managed Installation URL | */packaging/installPackage.apexp?p0=04tP3000000M6y1IAC*
 |Unlocked Installation URL| */packaging/installPackage.apexp?p0=04tP3000000M6zdIAC*
 
-
 ## Important
 - Security is no easy subject: Before implementing this (or any) solution, always validate what you're doing with a certified sercurity expert and your certified implementation partner
 - At the time of writing I work for Salesforce. The views / solutions presented here are strictly MY OWN and NOT per definition the views or solutions Salesforce as a company would recommend. Again; always consult with your certified implementation partner before implementing anything you've found on the internet.
+
+## Assign permissions to Automated Process User
+Since the Spring 24 release platform events started running as the Automated Process User. Making the logging fail due to access issue. Only run this if you are planning on using the "Lightweight - Auth Provider" Util Package
+To fix this I created a specific permission set for this user that can be assigned using the code below.
+```java
+insert new PermissionSetAssignment(
+    AssigneeId      = [SELECT Id FROM User          WHERE alias = 'autoproc']?.Id,
+    PermissionSetId = [SELECT Id FROM PermissionSet WHERE Name  = 'Lightweight_Auth_Provider_Util_AutoProc']?.Id
+);
+```
 
 ## Important note on approach
 This is an exploratory, "art of the possible" type approach. Common implementations use the [Salesforce Connect API](https://developer.salesforce.com/docs/atlas.en-us.chatterapi.meta/chatterapi/connect_resources_customer_360_audiences_resources.htm).
