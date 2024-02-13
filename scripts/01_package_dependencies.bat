@@ -7,11 +7,9 @@ sf package install -p "04tP3000000M6OXIA0" -w 30
 rem Lightweight - REST Util@0.11.0-1
 sf package install -p "04tP3000000M6gHIAS" -w 30
 
-
-
 REM ----------------- OPTIONAL BUT ADVICED -----------------
-rem Lightweight - Auth Provider Util v2@0.11.0-1
-sf package install -p "04tP3000000M7FlIAK" -w 30
+rem Lightweight - Auth Provider Util v2@0.12.0-1
+sf package install -p "04tP3000000MVUzIAO" -w 30
 
 
 REM --------------------------------------------------------
@@ -24,8 +22,8 @@ rem Lightweight - REST Util (Unlocked)@0.11.0-1
 sf package install -p "04tP3000000M6htIAC" -w 30
 
 REM ----------------- OPTIONAL BUT ADVICED -----------------
-rem Lightweight - Auth Provider Util v2 (Unlocked)@0.11.0-1
-sf package install -p "04tP3000000M7HNIA0" -w 30
+rem Lightweight - Auth Provider Util v2 (Unlocked)@0.12.0-1
+sf package install -p "04tP3000000MW1FIAW" -w 30
 
 
 REM --------------------------------------------------------

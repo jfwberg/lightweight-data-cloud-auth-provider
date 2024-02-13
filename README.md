@@ -29,9 +29,9 @@ This package has an extension that adds a basic (error) logging functionality an
 | Info | Value |
 |---|---|
 |Name|Lightweight - Auth Provider Util v2|
-|Version|0.11.0-1|
-|Managed Installation URL | */packaging/installPackage.apexp?p0=04tP3000000M7FlIAK*   |
-|Unlocked Installation URL| */packaging/installPackage.apexp?p0=04tP3000000M7HNIA0*   |
+|Version|0.12.0-1|
+|Managed Installation URL | */packaging/installPackage.apexp?p0=04tP3000000MVUzIAO*   |
+|Unlocked Installation URL| */packaging/installPackage.apexp?p0=04tP3000000MW1FIAW*   |
 |GIT URL                  | https://github.com/jfwberg/lightweight-auth-provider-util |
 
 ## Package info
