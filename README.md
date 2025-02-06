@@ -11,15 +11,15 @@ If you use the *managed package* you need to installed the managed package depen
 | Info | Value |
 |---|---|
 |Name|Lightweight - Apex Unit Test Util v2|
-|Version|2.4.0-1|
-|Managed Installation URL | */packaging/installPackage.apexp?p0=04tP3000000M6OXIA0* |
-|Unlocked Installation URL| */packaging/installPackage.apexp?p0=04tP3000000M6Q9IAK* |
+|Version|2.5.0-1|
+|Managed Installation URL | */packaging/installPackage.apexp?p0=04tP3000000rUmLIAU* |
+|Unlocked Installation URL| */packaging/installPackage.apexp?p0=04tP3000000rUpZIAU* |
 |Github URL | https://github.com/jfwberg/lightweight-apex-unit-test-util-v2         |
 | | |
 |Name|Lightweight - Apex REST Util|
-|Version|0.11.0-1|
-|Managed Installation URL | */packaging/installPackage.apexp?p0=04tP3000000M6gHIAS* |
-|Unlocked Installation URL| */packaging/installPackage.apexp?p0=04tP3000000M6htIAC* | 
+|Version|0.13.0-1|
+|Managed Installation URL | */packaging/installPackage.apexp?p0=04tP3000000wMhhIAE* |
+|Unlocked Installation URL| */packaging/installPackage.apexp?p0=04tP3000000wMkvIAE* | 
 |Github URL | https://github.com/jfwberg/lightweight-apex-rest-util                 |
 
 
@@ -38,9 +38,9 @@ This package has an extension that adds a basic (error) logging functionality an
 | Info | Value |
 |---|---|
 |Name|Lightweight - Data Cloud Auth Provider|
-|Version|0.5.0-1|
-|Managed Installation URL | */packaging/installPackage.apexp?p0=04tP3000000M6y1IAC* |
-|Unlocked Installation URL| */packaging/installPackage.apexp?p0=04tP3000000M6zdIAC* |
+|Version|0.6.0-1|
+|Managed Installation URL | */packaging/installPackage.apexp?p0=04tP30000012U9VIAU* |
+|Unlocked Installation URL| */packaging/installPackage.apexp?p0=04tP30000012TuzIAE* |
 
 ## Important
 - Security is no easy subject: Before implementing this (or any) solution, always validate what you're doing with a certified sercurity expert and your certified implementation partner

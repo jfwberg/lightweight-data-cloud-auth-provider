@@ -1,11 +1,11 @@
 REM --------------------------------------------------------
 REM MANGED DEPENDENCIES (PICK EITHER MANAGED OR UNLOCKED)  -
 REM --------------------------------------------------------
-rem Lightweight - Apex Unit Test Util v2@2.4.0-2
-sf package install -p "04tP3000000M6OXIA0" -w 30
+rem Lightweight - Apex Unit Test Util v2@2.5.0-2
+sf package install -p "04tP3000000rUmLIAU" -w 30
 
-rem Lightweight - REST Util@0.11.0-1
-sf package install -p "04tP3000000M6gHIAS" -w 30
+rem Lightweight - REST Util@0.13.0-1
+sf package install -p "04tP3000000wMhhIAE" -w 30
 
 REM ----------------- OPTIONAL BUT ADVICED -----------------
 rem Lightweight - Auth Provider Util v2@0.12.0-1
@@ -15,11 +15,11 @@ sf package install -p "04tP3000000MVUzIAO" -w 30
 REM --------------------------------------------------------
 REM UNLOCKED DEPENDENCIES (PICK EITHER MANAGED OR UNLOCKED)-
 REM --------------------------------------------------------
-rem Lightweight - Apex Unit Test Util v2 (Unlocked)@2.4.0-2
-sf package install -p "04tP3000000M6Q9IAK" -w 30
+rem Lightweight - Apex Unit Test Util v2 (Unlocked)@2.5.0-2
+sf package install -p "04tP3000000rUpZIAU" -w 30
 
-rem Lightweight - REST Util (Unlocked)@0.11.0-1
-sf package install -p "04tP3000000M6htIAC" -w 30
+rem Lightweight - REST Util (Unlocked)@0.13.0-1
+sf package install -p "04tP3000000wMkvIAE" -w 30
 
 REM ----------------- OPTIONAL BUT ADVICED -----------------
 rem Lightweight - Auth Provider Util v2 (Unlocked)@0.12.0-1
